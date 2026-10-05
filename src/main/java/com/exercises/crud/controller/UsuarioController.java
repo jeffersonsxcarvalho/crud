@@ -5,6 +5,7 @@ import com.exercises.crud.dto.UsuarioResponse;
 import com.exercises.crud.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class UsuarioController {
 
     @PostMapping
     @Operation(summary = "Criar usuario")
-    public ResponseEntity<UsuarioResponse> cadastrar(@RequestBody UsuarioRequest request) {
+    public ResponseEntity<UsuarioResponse> cadastrar(@Valid @RequestBody UsuarioRequest request) {
 
         UsuarioResponse response = service.cadastrar(request);
 
