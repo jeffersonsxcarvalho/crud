@@ -1,6 +1,8 @@
 package com.exercises.crud.exception;
 
 import com.exercises.crud.dto.ErroResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -9,6 +11,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+
 
     @ExceptionHandler(UsuarioNaoEncontradoException.class)
     public ResponseEntity<ErroResponse> tratarUsuarioNaoEncontrado(
@@ -53,6 +60,24 @@ public class GlobalExceptionHandler {
                 "Erro de validação.",
                 exception.getBindingResult().getFieldErrors()
         );
+
+        return ResponseEntity
+                .status(status)
+                .body(erro);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErroResponse> tratarErrosGerais(
+            Exception exception
+    ) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ErroResponse erro = ErroResponse.semCampos(
+                status,
+                "Ocorreu um erro interno no servidor."
+        );
+
+        logger.error("Erro inesperado na aplicação.", exception);
 
         return ResponseEntity
                 .status(status)
