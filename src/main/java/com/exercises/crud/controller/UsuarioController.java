@@ -26,8 +26,7 @@ public class UsuarioController {
     @GetMapping
     @Operation(summary = "Listar usuários")
     public ResponseEntity<List<UsuarioResponse>> listarTodos() {
-        throw new RuntimeException("Erro proposital");
-        //return ResponseEntity.ok(service.listarTodos());
+        return ResponseEntity.ok(service.listarTodos());
     }
 
     @GetMapping("/{id}")
