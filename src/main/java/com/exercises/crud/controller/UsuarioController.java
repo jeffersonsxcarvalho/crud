@@ -6,6 +6,7 @@ import com.exercises.crud.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,9 +51,19 @@ public class UsuarioController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Criar usuario")
-    public UsuarioResponse atualizar(@PathVariable("id") Long id, @RequestBody UsuarioRequest usuario) {
+    public ResponseEntity<UsuarioResponse> atualizar(@PathVariable("id") Long id, @Valid @RequestBody UsuarioRequest usuario) {
 
-        return service.atualizar(id, usuario);
+        UsuarioResponse response = service.atualizar(id, usuario);
 
+        return ResponseEntity.ok(response);
+
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Deletar usuario")
+    public ResponseEntity<Void> deletar(@PathVariable("id") Long id) {
+        service.deletar(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

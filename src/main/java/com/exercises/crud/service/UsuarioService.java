@@ -54,12 +54,29 @@ public class UsuarioService {
     @Transactional
     public UsuarioResponse atualizar(Long id, UsuarioRequest usuarioRequest) {
 
-        String senhaHash = passwordEncoder.encode(usuarioRequest.senha());
+        Usuario usuario = repository.findById(id)
+                .orElseThrow(() ->
+                        new UsuarioNaoEncontradoException("Usuário não encontrado")
+                );
 
-        Usuario usuario = new Usuario(id, usuarioRequest.nome(), usuarioRequest.email(), senhaHash, usuarioRequest.role());
+        usuario.setNome(usuarioRequest.nome());
+        usuario.setEmail(usuarioRequest.email());
+        usuario.setRole(usuarioRequest.role());
+
+        String senhaHash = passwordEncoder.encode(usuarioRequest.senha());
+        usuario.setSenha(senhaHash);
 
         return UsuarioResponse.de(repository.save(usuario));
     }
 
+    @Transactional
+    public void deletar(Long id) {
+        Usuario usuario = repository.findById(id)
+                        .orElseThrow(() ->
+                                new UsuarioNaoEncontradoException("Usuario não encontrado")
+                        );
 
+        repository.delete(usuario);
+
+    }
 }
