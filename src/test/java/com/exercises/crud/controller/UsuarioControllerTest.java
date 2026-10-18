@@ -4,6 +4,8 @@ import com.exercises.crud.config.JwtFilter;
 import com.exercises.crud.dto.UsuarioRequest;
 import com.exercises.crud.dto.UsuarioResponse;
 import com.exercises.crud.entity.Usuario;
+import com.exercises.crud.exception.EmailJaCadastradoException;
+import com.exercises.crud.exception.UsuarioNaoEncontradoException;
 import com.exercises.crud.service.JwtService;
 import com.exercises.crud.service.UsuarioService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +21,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -154,5 +157,72 @@ public class UsuarioControllerTest {
         verify(usuarioService).deletar(id);
     }
 
+    @Test
+    public void deveLancarExcecaoQuandoUsuarioNaoEncontrado() throws Exception{
+        //Arrange
+        Long id = 999L;
+        when(usuarioService.buscarPorId(id))
+                .thenThrow(new UsuarioNaoEncontradoException("Usuário não encontrado."));
+
+        //Act + Assert
+        mockMvc.perform(get("/api/usuarios/{id}", id))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Usuário não encontrado."));
+
+        verify(usuarioService).buscarPorId(id);
+    }
+
+    @Test
+    public void deveLancarExcecaoQuandoEmailJaCadastrado() throws Exception{
+        //Arrange
+        UsuarioRequest request =
+                new UsuarioRequest("Ana", "ana@email.com", "hash1", "USER");
+
+        when(usuarioService.cadastrar(any(UsuarioRequest.class)))
+                .thenThrow(new EmailJaCadastradoException("Email já cadastrado."));
+
+        //Act + Assert
+        mockMvc.perform(post("/api/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Email já cadastrado."));
+
+    }
+
+    @Test
+    public void deveLancarExcecaoQuandoCamposInvalidos() throws Exception{
+        //Assert
+        UsuarioRequest request = new UsuarioRequest("", "", "", "");
+
+        //Act + Assert
+        mockMvc.perform(post("/api/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fields.nome").exists())
+                .andExpect(jsonPath("$.fields.email").exists())
+                .andExpect(jsonPath("$.fields.senha").exists())
+                .andExpect(jsonPath("$.fields.role").exists());
+    }
+
+    @Test
+    public void deveRetornarMensagemGenericaDeErroPadrao() throws Exception{
+        //Arrange
+        UsuarioRequest request = new UsuarioRequest("Ana", "ana@email.com", "hash1", "USER");
+
+        when(usuarioService.cadastrar(any(UsuarioRequest.class)))
+                .thenThrow(
+                        new RuntimeException("Ocorreu um erro interno no servidor.")
+                );
+
+        mockMvc.perform(post("/api/usuarios")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError());
+    }
 }
 

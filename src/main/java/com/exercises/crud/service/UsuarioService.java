@@ -31,7 +31,7 @@ public class UsuarioService {
     public UsuarioResponse buscarPorId(Long id) {
         Usuario usuario = repository.findById(id)
                 .orElseThrow(() ->
-                        new UsuarioNaoEncontradoException("Usuario não encontrado")
+                        new UsuarioNaoEncontradoException("Usuário não encontrado.")
                 );
 
         return UsuarioResponse.de(usuario);
@@ -41,7 +41,7 @@ public class UsuarioService {
     public UsuarioResponse cadastrar(UsuarioRequest usuarioRequest) {
 
         if(repository.findByEmail(usuarioRequest.email()).isPresent()) {
-            throw new EmailJaCadastradoException("Email já cadastrado");
+            throw new EmailJaCadastradoException("Email já cadastrado.");
         }
 
         String senhaHash = passwordEncoder.encode(usuarioRequest.senha());
@@ -56,8 +56,13 @@ public class UsuarioService {
 
         Usuario usuario = repository.findById(id)
                 .orElseThrow(() ->
-                        new UsuarioNaoEncontradoException("Usuário não encontrado")
+                        new UsuarioNaoEncontradoException("Usuário não encontrado.")
                 );
+
+        if(repository.findByEmail(usuarioRequest.email()).isPresent()
+                && !usuario.getEmail().equals(usuarioRequest.email())){
+            throw new EmailJaCadastradoException("Email já cadastrado.");
+        }
 
         usuario.setNome(usuarioRequest.nome());
         usuario.setEmail(usuarioRequest.email());
@@ -73,7 +78,7 @@ public class UsuarioService {
     public void deletar(Long id) {
         Usuario usuario = repository.findById(id)
                         .orElseThrow(() ->
-                                new UsuarioNaoEncontradoException("Usuario não encontrado")
+                                new UsuarioNaoEncontradoException("Usuário não encontrado.")
                         );
 
         repository.delete(usuario);

@@ -11,19 +11,19 @@ import java.util.stream.Collectors;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ErroResponse(
         int status,
-        String erro,
-        String mensagem,
-        Map<String, String> campos
+        String error,
+        String message,
+        Map<String, String> fields
 ) {
 
     public static ErroResponse semCampos(
             HttpStatus status,
-            String mensagem
+            String message
     ) {
         return new ErroResponse(
                 status.value(),
                 status.getReasonPhrase(),
-                mensagem,
+                message,
                 null
         );
     }

@@ -149,6 +149,51 @@ public class UsuarioServiceTest {
     }
 
     @Test
+    public void deveLancarExcecaoQuandoEmailJaCadastradoAoAtualizar() {
+        //Arrange
+        Long id = 1L;
+        UsuarioRequest request = new UsuarioRequest("Ana", "joao@email.com", "hash", "USER");
+        Usuario usuario = new Usuario(id, "Ana", "ana@email.com", "hash", "USER");
+        Usuario usuario2 = new Usuario(id+1, "Joao", "joao@email.com", "hash1", "USER");
+
+        when(repository.findById(id)).thenReturn(Optional.of(usuario));
+
+        when(repository.findByEmail(request.email()))
+                .thenReturn(Optional.of(usuario2));
+
+        //Act + Assert
+        assertThrows(
+                EmailJaCadastradoException.class,
+                () -> usuarioService.atualizar(id, request)
+        );
+
+        verify(repository, never()).save(any(Usuario.class));
+    }
+
+    @Test
+    public void naoPermitirUsuarioManterProprioEmailAoAtualizar() {
+        //Arrange
+        Long id = 1L;
+        UsuarioRequest request = new UsuarioRequest("Ana", "ana@email.com", "hash", "USER");
+        Usuario usuario = new Usuario(id, "Ana", "ana@email.com", "hash", "USER");
+
+        when(repository.findById(id)).thenReturn(Optional.of(usuario));
+
+        when(repository.findByEmail(request.email()))
+                .thenReturn(Optional.of(usuario));
+
+        when(repository.save(any(Usuario.class)))
+                .thenReturn(usuario);
+
+        //Act + Assert
+        assertDoesNotThrow(
+                () -> usuarioService.atualizar(id, request)
+        );
+
+        verify(repository).save(any(Usuario.class));
+    }
+
+    @Test
     public void deveAtualizarUsuario() {
         //Arrange
         Usuario usuario = new Usuario(1L, "Ana", "ana@email.com", "hash", "USER");
